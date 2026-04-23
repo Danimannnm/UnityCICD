@@ -156,27 +156,27 @@ public class BuildScript
             try
             {
                 var editorLog = GetEditorLogPath();
-                Debug.LogError($"Editor.log path: {editorLog}");
+                Console.WriteLine($"Editor.log path: {editorLog}");
                 
                 if (File.Exists(editorLog))
                 {
                     var lines = File.ReadAllLines(editorLog);
                     int tail = Math.Min(300, lines.Length);
-                    Debug.LogError("===== BEGIN Editor.log (last 300 lines) =====");
+                    Console.WriteLine("===== BEGIN Editor.log (last 300 lines) =====");
                     for (int i = lines.Length - tail; i < lines.Length; i++)
                     {
-                        Debug.LogError(lines[i]);
+                        Console.WriteLine(lines[i]);
                     }
-                    Debug.LogError("===== END Editor.log =====");
+                    Console.WriteLine("===== END Editor.log =====");
                 }
                 else
                 {
-                    Debug.LogError("Editor.log not found.");
+                    Console.WriteLine("Editor.log not found.");
                 }
             }
             catch (Exception e)
             {
-                Debug.LogError($"Failed to read Editor.log: {e}");
+                Console.WriteLine($"Failed to read Editor.log: {e}");
             }
             
             EditorApplication.Exit(1);
