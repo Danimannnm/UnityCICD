@@ -23,10 +23,27 @@ public class BuildScript
         // Step 1: Log start banner
         Debug.Log("==== BuildAndroid start ====");
         Debug.Log($"Time: {DateTime.Now}");
-        Debug.Log($"buildAppBundle: {EditorUserBuildSettings.buildAppBundle}");
 
         // Step 2: Resolve format
-        bool buildAab = EditorUserBuildSettings.buildAppBundle;
+        // Priority order:
+        //   1. ANDROID_EXPORT_TYPE env var (set by GameCI unity-builder@v4 when androidExportType input is provided)
+        //   2. EditorUserBuildSettings.buildAppBundle (local / other invocations)
+        string exportType = Environment.GetEnvironmentVariable("ANDROID_EXPORT_TYPE");
+        bool buildAab;
+        if (!string.IsNullOrEmpty(exportType))
+        {
+            buildAab = string.Equals(exportType, "androidAppBundle", StringComparison.OrdinalIgnoreCase);
+            Debug.Log($"Format source: ANDROID_EXPORT_TYPE env var = '{exportType}'");
+        }
+        else
+        {
+            buildAab = EditorUserBuildSettings.buildAppBundle;
+            Debug.Log($"Format source: EditorUserBuildSettings.buildAppBundle = {buildAab}");
+        }
+
+        // Apply resolved format to EditorUserBuildSettings so BuildPipeline picks it up
+        EditorUserBuildSettings.buildAppBundle = buildAab;
+
         string extension = buildAab ? "aab" : "apk";
         Debug.Log($"Building {extension.ToUpper()}");
 
