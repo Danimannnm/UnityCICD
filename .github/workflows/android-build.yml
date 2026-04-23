@@ -44,16 +44,6 @@ jobs:
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android/sdk/ndk /opt/ghc
           df -h
 
-      # Decode keystore from base64 secret to runner temp directory
-      - name: Decode Android keystore
-        env:
-          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE }}
-        run: |
-          echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/user.keystore"
-          echo "Keystore decoded to $RUNNER_TEMP/user.keystore"
-          ls -la "$RUNNER_TEMP/user.keystore"
-          file "$RUNNER_TEMP/user.keystore"
-
       # Create Unity cache directory in workspace (not /root)
       - name: Create Unity cache directory
         run: |
@@ -66,10 +56,6 @@ jobs:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-          ANDROID_KEYSTORE_NAME: ${{ runner.temp }}/user.keystore
-          ANDROID_KEYSTORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASS }}
-          ANDROID_KEYALIAS_NAME: ${{ secrets.ANDROID_KEY_ALIAS }}
-          ANDROID_KEYALIAS_PASS: ${{ secrets.ANDROID_KEY_ALIAS_PASS }}
           HOME: ${{ github.workspace }}
           XDG_CACHE_HOME: ${{ github.workspace }}/.unity-cache
         with:
@@ -79,6 +65,11 @@ jobs:
           buildMethod: BuildScript.BuildAndroid
           buildsPath: Builds
           allowDirtyBuild: true
+          androidKeystoreName: user.keystore
+          androidKeystoreBase64: ${{ secrets.ANDROID_KEYSTORE }}
+          androidKeystorePass: ${{ secrets.ANDROID_KEYSTORE_PASS }}
+          androidKeyaliasName: ${{ secrets.ANDROID_KEY_ALIAS }}
+          androidKeyaliasPass: ${{ secrets.ANDROID_KEY_ALIAS_PASS }}
           customParameters: >-
             -customBuildVersion ${{ github.event.inputs.version_name || '1.0.0' }}
             -androidVersionCode ${{ github.event.inputs.build_number || github.run_number }}
