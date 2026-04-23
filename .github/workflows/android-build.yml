@@ -51,6 +51,8 @@ jobs:
         run: |
           echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/user.keystore"
           echo "Keystore decoded to $RUNNER_TEMP/user.keystore"
+          ls -la "$RUNNER_TEMP/user.keystore"
+          file "$RUNNER_TEMP/user.keystore"
 
       # Create Unity cache directory in workspace (not /root)
       - name: Create Unity cache directory
@@ -86,11 +88,14 @@ jobs:
         run: ls -la Builds/ || true
 
       - name: Upload Editor.log on failure
-        if: failure()
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: editor-log-${{ matrix.buildFormat }}
-          path: ${{ github.workspace }}/.config/unity3d/Editor.log
+          path: |
+            ${{ github.workspace }}/.config/unity3d/Editor.log
+            ${{ github.workspace }}/**/Editor.log
+            ${{ github.workspace }}/*.log
           if-no-files-found: warn
           retention-days: 7
 
