@@ -53,7 +53,7 @@ jobs:
         with:
           unityVersion: 2022.3.62f3
           targetPlatform: Android
-          androidAppBundle: ${{ matrix.buildFormat == 'AAB' }}
+          androidExportType: ${{ matrix.buildFormat == 'AAB' && 'androidAppBundle' || 'androidPackage' }}
           buildMethod: BuildScript.BuildAndroid
           buildsPath: Builds
           allowDirtyBuild: true
