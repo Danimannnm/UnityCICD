@@ -59,6 +59,15 @@ public class BuildScript
         string extension = buildAab ? "aab" : "apk";
         Debug.Log($"Building {extension.ToUpper()}");
 
+        // Log early state for diagnostics
+        Debug.Log($"activeBuildTarget: {EditorUserBuildSettings.activeBuildTarget}");
+        Debug.Log($"Android SDK: {EditorPrefs.GetString("AndroidSdkRoot")}");
+        Debug.Log($"Android NDK: {EditorPrefs.GetString("AndroidNdkRoot")}");
+        Debug.Log($"JDK:         {EditorPrefs.GetString("JdkPath")}");
+        Debug.Log($"package:     {PlayerSettings.applicationIdentifier}");
+        Debug.Log($"min SDK:     {PlayerSettings.Android.minSdkVersion}");
+        Debug.Log($"target SDK:  {PlayerSettings.Android.targetSdkVersion}");
+
         // Step 3: Apply version overrides (optional)
         var customVersion = GetArg("-customBuildVersion");
         if (!string.IsNullOrEmpty(customVersion))
@@ -85,12 +94,20 @@ public class BuildScript
             !string.IsNullOrEmpty(keyaliasName) && 
             !string.IsNullOrEmpty(keyaliasPass))
         {
+            // Validate keystore file exists
+            if (!File.Exists(keystoreName))
+            {
+                Debug.LogError($"Keystore file not found: {keystoreName}");
+                EditorApplication.Exit(1);
+                return;
+            }
+
             PlayerSettings.Android.useCustomKeystore = true;
             PlayerSettings.Android.keystoreName = keystoreName;
             PlayerSettings.Android.keystorePass = keystorePass;
             PlayerSettings.Android.keyaliasName = keyaliasName;
             PlayerSettings.Android.keyaliasPass = keyaliasPass;
-            Debug.Log($"Signing: enabled (keystore={Path.GetFileName(keystoreName)})");
+            Debug.Log($"Signing: enabled (keystore={Path.GetFileName(keystoreName)}, size={new FileInfo(keystoreName).Length} bytes)");
         }
         else
         {
@@ -128,6 +145,13 @@ public class BuildScript
             options = BuildOptions.None
         };
 
+        // Switch active build target if needed
+        if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.Android)
+        {
+            Debug.Log($"Switching build target from {EditorUserBuildSettings.activeBuildTarget} to Android...");
+            EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Android, BuildTarget.Android);
+        }
+
         // Step 8: Invoke build
         Debug.Log("Starting build...");
         BuildReport report = BuildPipeline.BuildPlayer(options);
@@ -139,6 +163,9 @@ public class BuildScript
         if (summary.result != BuildResult.Succeeded)
         {
             Debug.LogError($"Build failed with result: {summary.result}");
+            
+            // Log report steps count
+            Debug.Log($"report.steps count: {report.steps.Length}");
             
             // Log all errors from build steps
             foreach (var step in report.steps)
