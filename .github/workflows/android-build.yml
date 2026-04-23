@@ -52,11 +52,11 @@ jobs:
           echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/user.keystore"
           echo "Keystore decoded to $RUNNER_TEMP/user.keystore"
 
-      # Pre-create Unity cache directory to avoid permission errors
+      # Create Unity cache directory in workspace (not /root)
       - name: Create Unity cache directory
         run: |
-          sudo mkdir -p /root/.cache/unity3d
-          sudo chmod -R 777 /root/.cache/unity3d
+          mkdir -p "$GITHUB_WORKSPACE/.unity-cache"
+          chmod -R 777 "$GITHUB_WORKSPACE/.unity-cache"
 
       - name: Build with Unity
         uses: game-ci/unity-builder@v4
@@ -68,6 +68,8 @@ jobs:
           ANDROID_KEYSTORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASS }}
           ANDROID_KEYALIAS_NAME: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEYALIAS_PASS: ${{ secrets.ANDROID_KEY_ALIAS_PASS }}
+          HOME: ${{ github.workspace }}
+          XDG_CACHE_HOME: ${{ github.workspace }}/.unity-cache
         with:
           unityVersion: 2022.3.62f3
           targetPlatform: Android

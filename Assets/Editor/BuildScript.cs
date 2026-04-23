@@ -18,6 +18,18 @@ public class BuildScript
         return null;
     }
 
+    private static string GetEditorLogPath()
+    {
+#if UNITY_EDITOR_WIN
+        return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Unity", "Editor", "Editor.log");
+#elif UNITY_EDITOR_OSX
+        return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "Library", "Logs", "Unity", "Editor.log");
+#else
+        // Linux / CI container
+        return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), ".config", "unity3d", "Editor.log");
+#endif
+    }
+
     public static void BuildAndroid()
     {
         // Step 1: Log start banner
@@ -138,6 +150,33 @@ public class BuildScript
                         Debug.LogError($"[{step.name}] {message.content}");
                     }
                 }
+            }
+
+            // Dump Editor.log to CI output for detailed diagnostics
+            try
+            {
+                var editorLog = GetEditorLogPath();
+                Debug.LogError($"Editor.log path: {editorLog}");
+                
+                if (File.Exists(editorLog))
+                {
+                    var lines = File.ReadAllLines(editorLog);
+                    int tail = Math.Min(300, lines.Length);
+                    Debug.LogError("===== BEGIN Editor.log (last 300 lines) =====");
+                    for (int i = lines.Length - tail; i < lines.Length; i++)
+                    {
+                        Debug.LogError(lines[i]);
+                    }
+                    Debug.LogError("===== END Editor.log =====");
+                }
+                else
+                {
+                    Debug.LogError("Editor.log not found.");
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Failed to read Editor.log: {e}");
             }
             
             EditorApplication.Exit(1);
