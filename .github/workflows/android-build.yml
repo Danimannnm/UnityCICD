@@ -44,12 +44,24 @@ jobs:
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android/sdk/ndk /opt/ghc
           df -h
 
+      # Decode keystore from base64 secret to runner temp directory
+      - name: Decode Android keystore
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE }}
+        run: |
+          echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/user.keystore"
+          echo "Keystore decoded to $RUNNER_TEMP/user.keystore"
+
       - name: Build with Unity
         uses: game-ci/unity-builder@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          ANDROID_KEYSTORE_NAME: ${{ runner.temp }}/user.keystore
+          ANDROID_KEYSTORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASS }}
+          ANDROID_KEYALIAS_NAME: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEYALIAS_PASS: ${{ secrets.ANDROID_KEY_ALIAS_PASS }}
         with:
           unityVersion: 2022.3.62f3
           targetPlatform: Android

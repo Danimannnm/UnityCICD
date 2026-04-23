@@ -28,6 +28,7 @@ Recordings/
 *.mdb
 *.opendb
 *.VC.db
+guideline.md
 
 # ─── Unity package output / builds ────────────────────────────
 *.unitypackage
@@ -50,3 +51,6 @@ crashlytics-build.properties
 .DS_Store
 Thumbs.db
 sysinfo.txt
+
+# ─── Project documentation (internal) ─────────────────────────
+guideline.md
