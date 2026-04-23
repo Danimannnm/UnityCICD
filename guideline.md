@@ -149,16 +149,17 @@ Each phase is designed to be:
 - **Small enough** to review in one sitting.
 - **Ordered** — later phases depend on earlier ones.
 
-| Phase | Title | Goal | Deliverable |
-|---|---|---|---|
-| 1 | Unity project scaffold | Add repo hygiene (`.gitignore`, stub README) + validate the Unity project Adnan generated via Hub | `.gitignore`, stub `README.md`, validation report |
-| 2 | Build script | Write `Editor/BuildScript.cs` with `BuildAndroid()` methods for APK and AAB | `Editor/BuildScript.cs` |
-| 3 | Core workflow (unsigned) | Workflow that builds APK + AAB in batchmode without signing | `.github/workflows/android-build.yml` (v0) |
-| 4 | Signing + secrets wiring | Inject keystore + passwords into builds | Updated workflow |
-| 5 | Artifact upload | Structured artifact upload (APK + AAB, separate or grouped) | Updated workflow |
-| 6 | Slack notifications | Success notify (+ failure notify as bonus) with rich formatting | Updated workflow |
-| 7 | Caching + polish | Library cache, workflow_dispatch inputs, failure log upload | Updated workflow |
-| 8 | README + submission | Final README, setup instructions, design-decisions section, screenshot placeholders | `README.md` |
+| Phase | Title | Goal | Deliverable | Status |
+|---|---|---|---|---|
+| 1 | Unity project scaffold | Add repo hygiene (`.gitignore`, stub README) + validate the Unity project Adnan generated via Hub | `.gitignore`, stub `README.md`, validation report | ✅ done |
+| 2 | Build script | Write `Editor/BuildScript.cs` with `BuildAndroid()` that produces APK or AAB based on `EditorUserBuildSettings.buildAppBundle` | `Editor/BuildScript.cs` | ✅ done |
+| 3 | Core workflow (unsigned) + artifact upload | Workflow that builds APK + AAB in batchmode (matrix, unsigned) **and** uploads each as a GH artifact | `.github/workflows/android-build.yml` (v1) | ⏳ in progress |
+| 4 | Signing + secrets wiring | Inject keystore + passwords into builds; produce signed APK + AAB | Updated workflow | — |
+| 5 | Slack notifications | Success notify (+ failure notify as bonus) with rich Block Kit formatting including repo/branch/SHA/run URL | Updated workflow | — |
+| 6 | Caching + polish | `actions/cache` for Library/, failure log upload, `workflow_dispatch` inputs polish | Updated workflow | — |
+| 7 | README + submission | Final README, setup instructions, design-decisions section, screenshot of green run | `README.md` | — |
+
+> **Note**: the original plan had 8 phases with "core workflow" and "artifact upload" as separate phases. They were merged into Phase 3 because a build without an upload has nothing observable to verify — the two are tightly coupled. Total phases: 7.
 
 ### Verification loop (each phase)
 1. Sonnet implements phase.

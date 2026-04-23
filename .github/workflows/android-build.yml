@@ -1,0 +1,73 @@
+name: Android Build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      version_name:
+        description: "Version name (e.g. 1.0.0)"
+        required: false
+        default: "1.0.0"
+        type: string
+      build_number:
+        description: "Android build number (integer)"
+        required: false
+        default: "1"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build ${{ matrix.buildFormat }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        buildFormat: [APK, AAB]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+          fetch-depth: 1
+
+      # Free extra disk on the runner — Unity + Android SDK is ~15 GB
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android/sdk/ndk /opt/ghc
+          df -h
+
+      - name: Build with Unity
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          unityVersion: 2022.3.62f3
+          targetPlatform: Android
+          androidAppBundle: ${{ matrix.buildFormat == 'AAB' }}
+          buildMethod: BuildScript.BuildAndroid
+          buildsPath: Builds
+          allowDirtyBuild: true
+          customParameters: >-
+            -customBuildVersion ${{ github.event.inputs.version_name || '1.0.0' }}
+            -androidVersionCode ${{ github.event.inputs.build_number || github.run_number }}
+
+      - name: List build outputs
+        if: always()
+        run: ls -la Builds/ || true
+
+      - name: Upload artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ matrix.buildFormat }}
+          path: Builds/Android/
+          if-no-files-found: error
+          retention-days: 14
