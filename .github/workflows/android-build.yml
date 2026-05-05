@@ -9,7 +9,7 @@ on:
         description: "Build target"
         required: false
         default: "both"
-        type: choice
+        type: checkbox
         options:
           - both
           - APK
