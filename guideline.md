@@ -1,4 +1,4 @@
-# Unity Android CI/CD Pipeline — Implementation Guideline
+# Unity Android CI/CD Pipeline — Implementation Guideline.
 
 > Target executor: **Claude Sonnet** (coding agent)
 > Project owner: Adnan
